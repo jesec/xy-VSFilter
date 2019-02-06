@@ -4,6 +4,8 @@
 #include "DirectVobSub.h"
 #include "SubRenderIntf.h"
 #include "SubRenderOptionsImpl.h"
+#include "concurrentqueue.h"
+#include <future>
 
 class CDirectVobSubFilter;
 
@@ -107,6 +109,11 @@ private:
     HRESULT FindAndConnectConsumer(IFilterGraph* pGraph);
 
     void UpdateLanguageCount();
+
+    void DeliverRenderedFrame();
+    std::mutex delivering_lock;
+    moodycamel::ConcurrentQueue<std::future<std::tuple<REFERENCE_TIME, REFERENCE_TIME, LPVOID, CComPtr<IXySubRenderFrame>>>> render_queue;
+    std::tuple<REFERENCE_TIME, REFERENCE_TIME, LPVOID, CComPtr<IXySubRenderFrame>> XySubFilter::RequestFrameWork(REFERENCE_TIME start, REFERENCE_TIME stop, LPVOID context);
 
     CStringW DumpProviderInfo();
     CStringW DumpConsumerInfo();

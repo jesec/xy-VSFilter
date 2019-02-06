@@ -108,6 +108,7 @@
   <ItemGroup>
     <ClInclude Include="auto_load_helper.h" />
     <ClInclude Include="CAutoTiming.h" />
+    <ClInclude Include="concurrentqueue.h" />
     <ClInclude Include="DirectVobSub.h" />
     <ClInclude Include="DirectVobSubPropPage.h" />
     <ClInclude Include="IDirectVobSub.h" />

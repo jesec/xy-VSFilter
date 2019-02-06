@@ -1178,7 +1178,23 @@ DWORD XySubFilter::ThreadProc()
 // ISubRenderProvider
 //
 
-STDMETHODIMP XySubFilter::RequestFrame( REFERENCE_TIME start, REFERENCE_TIME stop, LPVOID context )
+void XySubFilter::DeliverRenderedFrame()
+{
+    std::unique_lock<std::mutex> lck(delivering_lock, std::defer_lock);
+    if (lck.try_lock()) {
+        CAutoLock cAutoLock(&m_csConsumer);
+        std::future<std::tuple<REFERENCE_TIME, REFERENCE_TIME, LPVOID, CComPtr<IXySubRenderFrame>>> frontFrame;
+        while (render_queue.try_dequeue(frontFrame)) {
+            auto framedata = frontFrame.get();
+            m_consumer->DeliverFrame(std::get<0>(framedata),
+                std::get<1>(framedata),
+                std::get<2>(framedata),
+                std::get<3>(framedata));
+        }
+    }
+}
+
+std::tuple<REFERENCE_TIME, REFERENCE_TIME, LPVOID, CComPtr<IXySubRenderFrame>> XySubFilter::RequestFrameWork( REFERENCE_TIME start, REFERENCE_TIME stop, LPVOID context )
 {
     TRACE_RENDERER_REQUEST_TIMING("Look up subpic for start:"<<start
         <<"("<<ReftimeToCString(start)<<")"
@@ -1187,13 +1203,11 @@ STDMETHODIMP XySubFilter::RequestFrame( REFERENCE_TIME start, REFERENCE_TIME sto
     HRESULT hr;
     CComPtr<IXySubRenderFrame> sub_render_frame;
     {
-        CAutoLock cAutoLock(&m_csFilter);
-
         hr = UpdateParamFromConsumer();
         if (FAILED(hr))
         {
             XY_LOG_ERROR("Failed to get parameters from consumer.");
-            return hr;
+            return { start, stop, context, NULL };
         }
 
         //
@@ -1208,7 +1222,7 @@ STDMETHODIMP XySubFilter::RequestFrame( REFERENCE_TIME start, REFERENCE_TIME sto
             if (FAILED(hr))
             {
                 XY_LOG_ERROR("Failed to RequestFrame."<<XY_LOG_VAR_2_STR(hr));
-                return hr;
+                return { start, stop, context, NULL };
             }
             if (sub_render_frame)
             {
@@ -1248,11 +1262,20 @@ STDMETHODIMP XySubFilter::RequestFrame( REFERENCE_TIME start, REFERENCE_TIME sto
 
         }
     }
-    CAutoLock cAutoLock(&m_csConsumer);
-    //fix me: print osd message
-    TRACE_RENDERER_REQUEST("Returnning "<<XY_LOG_VAR_2_STR(hr)<<XY_LOG_VAR_2_STR(sub_render_frame));
-    hr =  m_consumer->DeliverFrame(start, stop, context, sub_render_frame);
-    return hr;
+    return { start, stop, context, sub_render_frame };
+}
+
+STDMETHODIMP XySubFilter::RequestFrame(REFERENCE_TIME start, REFERENCE_TIME stop, LPVOID context)
+{
+    auto t = std::async(std::launch::async | std::launch::deferred, [this, start, stop, context] {
+        return this->RequestFrameWork(start, stop, context);
+    });
+    render_queue.enqueue(std::move(t));
+    auto r = std::thread([this] {
+        this->DeliverRenderedFrame();
+    });
+    r.detach();
+    return 0;
 }
 
 STDMETHODIMP XySubFilter::Disconnect( void )
