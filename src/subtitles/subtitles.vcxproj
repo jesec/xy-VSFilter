@@ -55,7 +55,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
-    <IncludePath>$(KIT_SHARED_IncludePath);$(UM_IncludePath);$(VC_IncludePath);$(UniversalCRT_IncludePath);$(SolutionDir)src\filters\transform\vsfilter;$(SolutionDir)src\filters\BaseClasses;$(SolutionDir)include\;$(SolutionDir)src\thirdparty\</IncludePath>
+    <IncludePath>$(KIT_SHARED_IncludePath);$(UM_IncludePath);$(VC_IncludePath);$(UniversalCRT_IncludePath);$(SolutionDir)src\filters\transform\vsfilter;$(SolutionDir)src\filters\BaseClasses;$(SolutionDir)include\;$(SolutionDir)src\thirdparty\libass</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -71,12 +71,12 @@
       <OpenMPSupport>true</OpenMPSupport>
     </ClCompile>
     <Lib>
-      <AdditionalDependencies>$(SolutionDir)bin\libacof64.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(OutDir)libassR.lib;$(SolutionDir)bin\libacof64.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Lib>
-      <AdditionalDependencies>$(SolutionDir)bin\libacof64.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(OutDir)libassD.lib;$(SolutionDir)bin\libacof64.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
