@@ -80,6 +80,9 @@
     <ClCompile Include="DirectVobSubFilterDll.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="SubFrame.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="csri.h">
@@ -143,6 +146,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="XyOptionsImpl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SubFrame.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

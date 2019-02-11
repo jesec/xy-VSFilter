@@ -41,6 +41,7 @@ extern "C" struct csri_vsfilter_inst {
 };
 typedef struct csri_vsfilter_inst csri_inst;
 #include "csri.h"
+#include "SubFrame.h"
 static csri_rend csri_vsfilter = "vsfilter";
 
 
@@ -154,7 +155,14 @@ CSRIAPI void csri_render(csri_inst *inst, struct csri_frame *frame, double time)
 	}
 	spd.vidrect = inst->video_rect;
 
-	inst->rts->Render(spd, (REFERENCE_TIME)(time*10000000), arbitrary_framerate, inst->video_rect);
+    if (inst->rts->m_assloaded) {
+        ass_set_frame_size(inst->rts->m_renderer.get(), inst->video_rect.right, inst->video_rect.bottom);
+        CComPtr<ISubRenderFrame> sub_render_frame = new SubFrame(inst->video_rect, 0, ass_render_frame(inst->rts->m_renderer.get(), inst->rts->m_track.get(), time * 1000, 0));
+    }
+    else
+    {
+        inst->rts->Render(spd, (REFERENCE_TIME)(time * 10000000), arbitrary_framerate, inst->video_rect);
+    }
 }
 
 
