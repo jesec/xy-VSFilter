@@ -156,7 +156,10 @@ CSRIAPI void csri_render(csri_inst *inst, struct csri_frame *frame, double time)
 	spd.vidrect = inst->video_rect;
 
     if (inst->rts->m_assloaded) {
+        int changed = 1;
         ass_set_frame_size(inst->rts->m_renderer.get(), inst->video_rect.right, inst->video_rect.bottom);
+        ass_render_frame(inst->rts->m_renderer.get(), inst->rts->m_track.get(), time * 1000, &changed);
+        if (!changed) return;
         CComPtr<ISubRenderFrame> sub_render_frame = new SubFrame(inst->video_rect, 0, ass_render_frame(inst->rts->m_renderer.get(), inst->rts->m_track.get(), time * 1000, 0));
     }
     else
